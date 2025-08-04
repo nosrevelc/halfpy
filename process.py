@@ -62,7 +62,7 @@ def run_halftone(args: argparse.Namespace):
     """
     print("--- Executando Efeito Halftone ---")
     # Passamos `args.output` diretamente. A função `halftone` saberá o que fazer se for None.
-    halftone(args.input, args.block_size, args.output)
+    halftone(args.input, args.block_size, args.output, args.angle, args.shape, args.dpi)
 
 # --- Configuração do Parser Principal ---
 
@@ -100,7 +100,10 @@ def main():
     p_half = subparsers.add_parser('halftone', help='Aplica efeito de retícula (halftone) na imagem.')
     p_half.add_argument("input", help="Caminho para a imagem de entrada.")
     p_half.add_argument("-o", "--output", help="Caminho para o arquivo de saída (opcional).")
-    p_half.add_argument("-b", "--block-size", type=int, default=10, help="Tamanho do bloco da retícula (padrão: 10).")
+    p_half.add_argument("-b", "--block-size", type=int, default=10, help="Tamanho do bloco (frequência) da retícula (padrão: 10).")
+    p_half.add_argument("--angle", type=float, default=0.0, help="Ângulo da retícula em graus (ex: 45). Padrão: 0.")
+    p_half.add_argument("--shape", choices=['circle', 'square', 'diamond'], default='circle', help="Forma do ponto da retícula. Padrão: circle.")
+    p_half.add_argument("--dpi", type=int, default=300, help="DPI para o arquivo de saída (padrão: 300).")
     p_half.set_defaults(func=run_halftone)
 
     try:
