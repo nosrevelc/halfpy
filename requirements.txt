@@ -1,0 +1,7 @@
+Pillow
+numpy
+opencv-contrib-python
+requests
+tqdm
+rembg
+onnxruntime
