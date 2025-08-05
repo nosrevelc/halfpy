@@ -10,9 +10,9 @@
 #    py process.py remove-bg "imagem.jpg"
 #
 import argparse
-import sys
+import sys 
 import os
-from PIL import Image
+from PIL import Image, ImageFilter
 
 # --- Importar as funções principais dos outros scripts ---
 try:
@@ -64,6 +64,23 @@ def run_halftone(args: argparse.Namespace):
     # Passamos `args.output` diretamente. A função `halftone` saberá o que fazer se for None.
     halftone(args.input, args.block_size, args.output, args.angle, args.shape, args.dpi)
 
+def run_sharpen(args: argparse.Namespace):
+    """Aplica um filtro de nitidez (sharpen)."""
+    print("--- Aplicando Filtro de Nitidez ---")
+    try:
+        img = Image.open(args.input)
+        # Garante que a imagem não tenha canal Alpha para evitar problemas com alguns formatos
+        img_rgb = img.convert('RGB')
+        sharpened_img = img_rgb.filter(ImageFilter.SHARPEN)
+
+        base, _ = os.path.splitext(args.input)
+        output_path = args.output if args.output else f"{base}_sharpened.png"
+
+        sharpened_img.save(output_path, format="PNG", dpi=(args.dpi, args.dpi))
+        print(f"[✔] Imagem com nitidez aplicada salva em: {output_path}")
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Arquivo de entrada não foi encontrado em '{args.input}'")
+
 # --- Configuração do Parser Principal ---
 
 def main():
@@ -105,6 +122,13 @@ def main():
     p_half.add_argument("--shape", choices=['circle', 'square', 'diamond'], default='circle', help="Forma do ponto da retícula. Padrão: circle.")
     p_half.add_argument("--dpi", type=int, default=300, help="DPI para o arquivo de saída (padrão: 300).")
     p_half.set_defaults(func=run_halftone)
+
+    # --- Sub-comando: sharpen ---
+    p_sharpen = subparsers.add_parser('sharpen', help='Aplica um filtro de nitidez na imagem.')
+    p_sharpen.add_argument("input", help="Caminho para a imagem de entrada.")
+    p_sharpen.add_argument("-o", "--output", help="Caminho para o arquivo de saída (opcional).")
+    p_sharpen.add_argument("--dpi", type=int, default=300, help="DPI para o arquivo de saída (padrão: 300).")
+    p_sharpen.set_defaults(func=run_sharpen)
 
     try:
         args = parser.parse_args()
