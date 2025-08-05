@@ -20,6 +20,7 @@ try:
     from ai_enhance import ai_enhance, VALID_MODELS
     from upscale import upscale_image
     from half import halftone
+    from sharpen import sharpen_image
 except ImportError as e:
     print(f"[✖] Erro ao importar um módulo necessário: {e}", file=sys.stderr)
     print("    Certifique-se que todos os scripts (remove_bg.py, ai_enhance.py, etc.) estão na mesma pasta.", file=sys.stderr)
@@ -67,19 +68,7 @@ def run_halftone(args: argparse.Namespace):
 def run_sharpen(args: argparse.Namespace):
     """Aplica um filtro de nitidez (sharpen)."""
     print("--- Aplicando Filtro de Nitidez ---")
-    try:
-        img = Image.open(args.input)
-        # Garante que a imagem não tenha canal Alpha para evitar problemas com alguns formatos
-        img_rgb = img.convert('RGB')
-        sharpened_img = img_rgb.filter(ImageFilter.SHARPEN)
-
-        base, _ = os.path.splitext(args.input)
-        output_path = args.output if args.output else f"{base}_sharpened.png"
-
-        sharpened_img.save(output_path, format="PNG", dpi=(args.dpi, args.dpi))
-        print(f"[✔] Imagem com nitidez aplicada salva em: {output_path}")
-    except FileNotFoundError:
-        raise FileNotFoundError(f"Arquivo de entrada não foi encontrado em '{args.input}'")
+    sharpen_image(args.input, args.output, args.dpi)
 
 # --- Configuração do Parser Principal ---
 
@@ -132,10 +121,19 @@ def main():
 
     try:
         args = parser.parse_args()
+
+        # Validação extra para combinações de argumentos que o argparse não consegue fazer nativamente
+        if args.command == 'enhance' and args.scale not in VALID_MODELS[args.model]:
+            raise ValueError(
+                f"Modelo '{args.model}' não suporta a escala x{args.scale}. "
+                f"Opções válidas para este modelo: {VALID_MODELS[args.model]}"
+            )
+
         args.func(args)
         print("\n[✔] Operação concluída com sucesso!")
-    except Exception as e:
-        print(f"\n[✖] Ocorreu um erro inesperado: {e}", file=sys.stderr)
+    except (FileNotFoundError, ValueError, RuntimeError, IOError) as e:
+        # Captura erros conhecidos e exibe uma mensagem amigável
+        print(f"\n[✖] ERRO: {e}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":
