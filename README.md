@@ -53,7 +53,12 @@ O `process.py` virou o canivete suíço do projeto. Execute `py process.py --hel
 | `halftone`       | Gera retícula colorida com gradiente inclinada (`half.halftone_rotate`)   | `py process.py halftone foto.png -b 12 --angle 45 --background claro --layers 4`        |
 | `sharpen`        | Aplica filtro de nitidez simples                                          | `py process.py sharpen foto.png --dpi 300`                                              |
 
-O `halftone` expõe diretamente `-b/--block-size`, `--angle`, `--shape`, `--dpi`, `--background` e `--layers`, além do `-o/--output`. O `enhance` utiliza o wrapper `ai_enhance.ai_enhance`, respeitando a compatibilidade `modelo x escala` e aceitando `--models-path` para buscar os `.pb`.
+### Detalhes de parâmetros
+
+| Comando                    | Explicação                                                                                                                        | Exemplo completo                                                                                              |
+|---------------------------|------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
+| `process.py halftone`     | Exibe todas as opções de `half.py`: `-b/--block-size`, `--angle`, `--shape`, `--dpi`, `--background`, `--layers` e `-o/--output`. | `py process.py halftone arte.png -o arte_halftone.png -b 14 --angle 30 --shape diamond --background claro`    |
+| `process.py enhance`      | Usa `ai_enhance.ai_enhance`, valida `modelo × escala` e permite `--models-path` para apontar onde procurar/baixar os `.pb`.        | `py process.py enhance foto.jpg -m LAPSRN -s 2 --models-path .\models --output foto_lapsrn_x2.png`             |
 
 ## Uso direto dos scripts
 
