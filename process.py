@@ -26,6 +26,31 @@ except ImportError as e:
     print("    Certifique-se que todos os scripts (remove_bg.py, ai_enhance.py, etc.) estão na mesma pasta.", file=sys.stderr)
     sys.exit(1)
 
+# --- Funções de diagnóstico ---
+
+def check_opencv():
+    """Verifica a instalação do OpenCV e do módulo dnn_superres."""
+    print("\n--- Verificando OpenCV ---")
+    try:
+        import cv2
+        print(f"[✔] Módulo 'cv2' importado (Versão: {cv2.__version__})")
+        try:
+            from cv2.dnn_superres import DnnSuperResImpl_create
+            print("[✔] Módulo 'cv2.dnn_superres' encontrado. Instalação parece CORRETA para 'enhance'.")
+            return True
+        except ImportError:
+            print("[✖] ERRO: Módulo 'cv2.dnn_superres' NÃO foi encontrado.", file=sys.stderr)
+            print("      Sua instalação do OpenCV provavelmente não é a versão 'contrib'.", file=sys.stderr)
+            print("      Para usar o comando 'enhance', instale a versão correta com:", file=sys.stderr)
+            print(f'      "{sys.executable}" -m pip install --force-reinstall opencv-contrib-python', file=sys.stderr)
+            return False
+    except ImportError:
+        print("[✖] ERRO: Módulo 'cv2' (OpenCV) NÃO foi encontrado.", file=sys.stderr)
+        print("      Para usar o comando 'enhance', instale a biblioteca com:", file=sys.stderr)
+        print(f'      "{sys.executable}" -m pip install opencv-contrib-python', file=sys.stderr)
+        return False
+
+
 # --- Funções de execução para cada sub-comando ---
 
 def run_remove_bg(args: argparse.Namespace):
@@ -70,6 +95,16 @@ def run_sharpen(args: argparse.Namespace):
     print("--- Aplicando Filtro de Nitidez ---")
     sharpen_image(args.input, args.output, args.dpi)
 
+def run_check_env(args: argparse.Namespace):
+    """Executa verificações do ambiente."""
+    print("--- Executando Verificação de Ambiente ---")
+    print(f"Python: {sys.executable}")
+    print(f"Versão: {sys.version}")
+
+    check_opencv()
+    # Futuramente, outras verificações (ex: rembg) podem ser adicionadas aqui.
+    print("\n[i] Verificação concluída.")
+
 # --- Configuração do Parser Principal ---
 
 def main():
@@ -78,6 +113,10 @@ def main():
         formatter_class=argparse.RawTextHelpFormatter
     )
     subparsers = parser.add_subparsers(dest='command', required=True, help='Comando a ser executado')
+
+    # --- Sub-comando: check-env ---
+    p_check = subparsers.add_parser('check-env', help='Verifica se as dependências estão instaladas corretamente.')
+    p_check.set_defaults(func=run_check_env)
 
     # --- Sub-comando: remove-bg ---
     p_rmbg = subparsers.add_parser('remove-bg', help='Remove o fundo de uma imagem (usa rembg).')

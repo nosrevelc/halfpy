@@ -1,0 +1,28 @@
+# Bytecode e caches
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+ENV/
+
+# Ferramentas/editores
+.VSCodeCounter/
+.vscode/
+.idea/
+
+# Arquivos temporários comuns
+*.log
+*.tmp
+*.swp
+*.swo
+
+# Dados/imagens exportadas que não precisam ir para o repositório
+*.psd
+*.tif
+*.tiff
+
