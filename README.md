@@ -60,6 +60,27 @@ O `process.py` virou o canivete suíço do projeto. Execute `py process.py --hel
 | `process.py halftone`     | Exibe todas as opções de `half.py`: `-b/--block-size`, `--angle`, `--shape`, `--dpi`, `--background`, `--layers` e `-o/--output`. | `py process.py halftone arte.png -o arte_halftone.png -b 14 --angle 30 --shape diamond --background claro`    |
 | `process.py enhance`      | Usa `ai_enhance.ai_enhance`, valida `modelo × escala` e permite `--models-path` para apontar onde procurar/baixar os `.pb`.        | `py process.py enhance foto.jpg -m LAPSRN -s 2 --models-path .\models --output foto_lapsrn_x2.png`             |
 
+### Parâmetros do `halftone`
+
+| Parâmetro                | Valor padrão | Quando usar                                                                                                       |
+|-------------------------|--------------|-------------------------------------------------------------------------------------------------------------------|
+| `-b / --block-size`     | `10`         | Frequência da retícula: números menores → pontos mais densos; maiores → pontos espaçados.                         |
+| `--angle`               | `45`         | Define a rotação da grade em graus.                                                                               |
+| `--shape`               | `circle`     | Formato do ponto (`circle`, `square`, `diamond`).                                                                 |
+| `--dpi`                 | `300`        | DPI gravado no PNG final.                                                                                         |
+| `--background`          | `claro`      | `claro` preserva as cores originais (ideal para base clara). `escuro` gera dots brancos para contraste em fundo escuro. |
+| `--layers`              | `3`          | Número de camadas semitransparentes empilhadas para reforçar o contraste.                                         |
+| `-o / --output`         | automático   | Caminho opcional para o PNG final.                                                                                |
+
+### Parâmetros do `enhance`
+
+| Parâmetro             | Valor padrão | Observação                                                                                                 |
+|----------------------|--------------|------------------------------------------------------------------------------------------------------------|
+| `-m / --model`       | `EDSR`       | Aceita `EDSR`, `ESPCN`, `FSRCNN`, `LAPSRN`. A escolha precisa combinar com a escala (`-s`).                |
+| `-s / --scale`       | `4`          | Fator de upscaling (2, 3 ou 4 conforme o modelo).                                                          |
+| `--models-path`      | `models`     | Diretório onde procurar/baixar os `.pb`. Facilita usar modelos locais sem novo download.                   |
+| `-o / --output`      | automático   | Nome opcional do arquivo de saída (`<input>_enhanced_<model>_x<scale>.png` é o padrão).                    |
+
 ## Uso direto dos scripts
 
 Se preferir chamar cada utilitário separadamente:
