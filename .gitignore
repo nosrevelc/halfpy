@@ -26,3 +26,20 @@ ENV/
 *.tif
 *.tiff
 
+
+
+# Sistemas operacionais
+Thumbs.db
+.DS_Store
+
+# Empacotamento / build
+build/
+dist/
+*.egg-info/
+
+# Ambiente de desenvolvimento local
+.env
+
+# Notas: modelos binários grandes (.pb, .onnx) devem ser versionados via Git LFS
+# Não ignore a pasta `models/` se planeja usar Git LFS para rastrear seus arquivos.
+
