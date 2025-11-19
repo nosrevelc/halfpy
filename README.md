@@ -3,13 +3,14 @@
 Projeto com um conjunto de scripts Python para gerar halftones coloridos, remover fundo, aplicar super-resolução e outras utilidades de imagem.
 
 ## Conteúdo principal
+- `process.py` — canivete suíço com subcomandos (`check-env`, `remove-bg`, `enhance`, `upscale`, `halftone`, `sharpen`).
 - `half.py` — gerador de halftone com camadas semitransparentes (CLI).
 - `ai_enhance.py` — upscaling via OpenCV DNN Super-Resolution (edsr/espcn/fsrcnn/lapsrn).
-- `upscale.py`, `sharpen.py`, `remove_bg.py`, `process.py` — utilitários adicionais.
+- `upscale.py`, `sharpen.py`, `remove_bg.py` — utilitários adicionais (também acessíveis via `process.py`).
 - `models/` e `ai_models/` — modelos pré-treinados (p. ex. EDSR `.pb`).
 
 ## Pré-requisitos
-- Python 3.8+ (testado com 3.10/3.12).
+- Python 3.8+ (recomendado usar 3.10; o `.venv` padrão foi recriado com essa versão).
 - Git (para controle de versão) e Git LFS recomendado para modelos grandes.
 - Dependências listadas em `requirements.txt`.
 
@@ -17,16 +18,14 @@ Projeto com um conjunto de scripts Python para gerar halftones coloridos, remove
 1. Criar e ativar ambiente virtual:
 
 ```powershell
-py -m venv .venv
+"C:\Program Files\Python310\python.exe" -m venv .venv   # ajuste o caminho caso use outra versão
 .\.venv\Scripts\Activate.ps1
 ```
 
 2. Instalar dependências:
 
 ```powershell
-py -m pip install -r requirements.txt
-# Se for usar o ai_enhance com OpenCV DNN SR
-py -m pip install opencv-contrib-python
+pip install -r requirements.txt
 ```
 
 3. (Opcional) Git LFS — recomendado para `.pb` grandes:
@@ -38,60 +37,52 @@ git add .gitattributes
 git commit -m "Track models with Git LFS"
 ```
 
-## Uso — exemplos de CLI
+## Uso — CLI principal (`process.py`)
 
-Observação: todos os exemplos abaixo assumem que você está no diretório do projeto e que o ambiente virtual está ativado.
+O `process.py` virou o canivete suíço do projeto. Execute `py process.py --help` para ver os subcomandos disponíveis e use `py process.py <comando> --help` para detalhes opcionais. Ambiente virtual ativo é recomendado para todos os exemplos.
 
-### 1) Gerar Halftone (`half.py`)
+### Subcomandos
 
-Opções principais (algumas):
-- `input` (posicional): caminho da imagem de entrada.
-- `-o, --output`: caminho do PNG de saída.
-- `-b, --block-size` (int): tamanho do bloco/ponto (padrão: 10).
-- `--angle` (float): ângulo em graus (padrão: 45).
-- `--shape`: `circle|square|diamond` (padrão: circle).
-- `--dpi` (int): DPI do PNG de saída (padrão: 300).
-- `--background`: `claro|escuro` (quando omisso, o script pode perguntar).
-- `--layers` (int): número de camadas semitransparentes (padrão: 3).
+| Comando          | Descrição                                                                 | Exemplo                                                                                 |
+|------------------|----------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|
+| `check-env`      | Mostra o Python corrente e valida OpenCV/dnn\_superres                    | `py process.py check-env`                                                               |
+| `remove-bg`      | Remove o fundo com `rembg`, preservando DPI configurado                   | `py process.py remove-bg entrada.png --dpi 300`                                         |
+| `enhance`        | Super-resolução IA (edsr/espcn/fsrcnn/lapsrn) via OpenCV DNN SR           | `py process.py enhance arte.png -m EDSR -s 4 --models-path models`                      |
+| `upscale`        | Redimensionamento tradicional com filtros Pillow                          | `py process.py upscale logo.png -s 2.0 -r lanczos`                                      |
+| `upscale -d`     | Redimensiona para dimensões exatas                                        | `py process.py upscale logo.png -d 4096 4096`                                           |
+| `halftone`       | Gera retícula colorida com gradiente inclinada (`half.halftone_rotate`)   | `py process.py halftone foto.png -b 12 --angle 45 --background claro --layers 4`        |
+| `sharpen`        | Aplica filtro de nitidez simples                                          | `py process.py sharpen foto.png --dpi 300`                                              |
 
-Exemplo:
+O `halftone` expõe diretamente `-b/--block-size`, `--angle`, `--shape`, `--dpi`, `--background` e `--layers`, além do `-o/--output`. O `enhance` utiliza o wrapper `ai_enhance.ai_enhance`, respeitando a compatibilidade `modelo x escala` e aceitando `--models-path` para buscar os `.pb`.
+
+## Uso direto dos scripts
+
+Se preferir chamar cada utilitário separadamente:
+
+### `half.py`
 
 ```powershell
 py half.py input.jpg -o output_halftone.png -b 12 --angle 45 --shape circle --dpi 300 --background claro --layers 3
 ```
 
-Também existe um `halftone.bat` para executar o processo no Windows de forma direta.
-
-### 2) AI Image Enhancement (`ai_enhance.py`)
-
-Opções:
-- `input` (posicional): caminho da imagem de entrada
-- `-o, --output`: arquivo de saída (padrão: `<input>_enhanced_<model>_x<scale>.png`)
-- `-m, --model`: `edsr|espcn|fsrcnn|lapsrn` (padrão: edsr)
-- `-s, --scale`: `2|3|4` (padrão: 4)
-
-Exemplos:
+### `ai_enhance.py`
 
 ```powershell
-py ai_enhance.py imagem.jpg -o imagem_upscaled.png -m edsr -s 4
-py ai_enhance.py foto.png --model fsrcnn --scale 2
+py ai_enhance.py imagem.jpg -o imagem_upscaled.png -m edsr -s 4 --models-path models
 ```
 
-Se o modelo não existir em `models/` ele pode ser baixado automaticamente (dependendo do script), ou você pode colocar os `.pb` em `models/` manualmente.
-
-### 3) Verificar OpenCV (`check_cv2.py`)
-
-Use este script para checar se o OpenCV está disponível e se o módulo DNN/SR funciona:
+### `check_cv2.py`
 
 ```powershell
 py check_cv2.py
 ```
 
-### 4) Outros scripts
-- `remove_bg.py`: remover background de imagens (ver parâmetros no topo do arquivo).
-- `upscale.py` / `sharpen.py` / `process.py`: utilitários auxiliares — veja `--help` ou o topo do script.
+### Outros utilitários
+- `remove_bg.py`: remove o fundo e entrega PNG com DPI ajustável.
+- `sharpen.py`: aplica nitidez básica.
+- `upscale.py`: contém tanto o helper `upscale_image` (Pillow) quanto as rotinas de super-resolução com OpenCV caso precise usá-las de forma isolada.
 
-Para ver as opções exatas de qualquer script Python, use:
+Para consultar as opções de qualquer script:
 
 ```powershell
 py script_name.py --help

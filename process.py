@@ -19,7 +19,7 @@ try:
     from remove_bg import process_image_to_png
     from ai_enhance import ai_enhance, VALID_MODELS
     from upscale import upscale_image
-    from half import halftone
+    from half import halftone_rotate
     from sharpen import sharpen_image
 except ImportError as e:
     print(f"[✖] Erro ao importar um módulo necessário: {e}", file=sys.stderr)
@@ -33,19 +33,19 @@ def check_opencv():
     print("\n--- Verificando OpenCV ---")
     try:
         import cv2
-        print(f"[✔] Módulo 'cv2' importado (Versão: {cv2.__version__})")
+        print(f"[OK] Módulo 'cv2' importado (Versão: {cv2.__version__})")
         try:
             from cv2.dnn_superres import DnnSuperResImpl_create
-            print("[✔] Módulo 'cv2.dnn_superres' encontrado. Instalação parece CORRETA para 'enhance'.")
+            print("[OK] Módulo 'cv2.dnn_superres' encontrado. Instalação parece CORRETA para 'enhance'.")
             return True
         except ImportError:
-            print("[✖] ERRO: Módulo 'cv2.dnn_superres' NÃO foi encontrado.", file=sys.stderr)
+            print("[ERRO] Módulo 'cv2.dnn_superres' NÃO foi encontrado.", file=sys.stderr)
             print("      Sua instalação do OpenCV provavelmente não é a versão 'contrib'.", file=sys.stderr)
             print("      Para usar o comando 'enhance', instale a versão correta com:", file=sys.stderr)
             print(f'      "{sys.executable}" -m pip install --force-reinstall opencv-contrib-python', file=sys.stderr)
             return False
     except ImportError:
-        print("[✖] ERRO: Módulo 'cv2' (OpenCV) NÃO foi encontrado.", file=sys.stderr)
+        print("[ERRO] Módulo 'cv2' (OpenCV) NÃO foi encontrado.", file=sys.stderr)
         print("      Para usar o comando 'enhance', instale a biblioteca com:", file=sys.stderr)
         print(f'      "{sys.executable}" -m pip install opencv-contrib-python', file=sys.stderr)
         return False
@@ -84,11 +84,19 @@ def run_upscale(args: argparse.Namespace):
 def run_halftone(args: argparse.Namespace):
     """
     Executa o efeito de retícula (halftone).
-    A lógica para nomear o arquivo de saída agora está centralizada na função `halftone`.
+    A lógica para nomear o arquivo de saída agora está centralizada na função `halftone_rotate`.
     """
     print("--- Executando Efeito Halftone ---")
-    # Passamos `args.output` diretamente. A função `halftone` saberá o que fazer se for None.
-    halftone(args.input, args.block_size, args.output, args.angle, args.shape, args.dpi)
+    halftone_rotate(
+        input_path=args.input,
+        block_size=args.block_size,
+        angle=args.angle,
+        shape=args.shape,
+        dpi=args.dpi,
+        background=args.background,
+        layers=args.layers,
+        output_path=args.output,
+    )
 
 def run_sharpen(args: argparse.Namespace):
     """Aplica um filtro de nitidez (sharpen)."""
@@ -146,9 +154,11 @@ def main():
     p_half.add_argument("input", help="Caminho para a imagem de entrada.")
     p_half.add_argument("-o", "--output", help="Caminho para o arquivo de saída (opcional).")
     p_half.add_argument("-b", "--block-size", type=int, default=10, help="Tamanho do bloco (frequência) da retícula (padrão: 10).")
-    p_half.add_argument("--angle", type=float, default=0.0, help="Ângulo da retícula em graus (ex: 45). Padrão: 0.")
+    p_half.add_argument("--angle", type=float, default=45.0, help="Ângulo da retícula em graus (ex: 45). Padrão: 45.")
     p_half.add_argument("--shape", choices=['circle', 'square', 'diamond'], default='circle', help="Forma do ponto da retícula. Padrão: circle.")
     p_half.add_argument("--dpi", type=int, default=300, help="DPI para o arquivo de saída (padrão: 300).")
+    p_half.add_argument("--background", choices=["claro", "escuro"], default="escuro", help="Tipo de fundo usado no cálculo dos pontos (padrão: escuro).")
+    p_half.add_argument("--layers", type=int, default=3, help="Número de camadas semitransparentes empilhadas (padrão: 3).")
     p_half.set_defaults(func=run_halftone)
 
     # --- Sub-comando: sharpen ---
@@ -169,10 +179,10 @@ def main():
             )
 
         args.func(args)
-        print("\n[✔] Operação concluída com sucesso!")
+        print("\n[OK] Operação concluída com sucesso!")
     except (FileNotFoundError, ValueError, RuntimeError, IOError) as e:
         # Captura erros conhecidos e exibe uma mensagem amigável
-        print(f"\n[✖] ERRO: {e}", file=sys.stderr)
+        print(f"\n[ERRO] {e}", file=sys.stderr)
         sys.exit(1)
 
 if __name__ == "__main__":

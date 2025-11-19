@@ -8,6 +8,34 @@ import argparse
 import os
 import cv2
 from cv2.dnn_superres import DnnSuperResImpl_create
+from PIL import Image
+
+def upscale_image(
+    input_path: str,
+    scale_factor: float | None = None,
+    target_width: int | None = None,
+    target_height: int | None = None,
+    resample_filter=Image.Resampling.LANCZOS,
+    output_path: str | None = None,
+) -> str:
+    """
+    Redimensiona uma imagem usando Pillow, mantendo a proporção quando o fator é usado.
+    """
+    if scale_factor is None and (target_width is None or target_height is None):
+        raise ValueError("Informe scale_factor ou (target_width e target_height).")
+
+    img = Image.open(input_path)
+    if scale_factor is not None:
+        new_size = (int(img.width * scale_factor), int(img.height * scale_factor))
+    else:
+        new_size = (target_width, target_height)
+
+    resized = img.resize(new_size, resample=resample_filter)
+    base, _ = os.path.splitext(input_path)
+    out = output_path or f"{base}_upscaled.png"
+    resized.save(out, format="PNG", dpi=img.info.get("dpi", (300, 300)))
+    print(f"[OK] Imagem redimensionada salva em: {out}")
+    return out
 
 
 def get_local_model_path(model_name: str, scale: int, model_dir: str) -> str:
