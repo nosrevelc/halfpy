@@ -17,7 +17,7 @@ import os
 import sys
 import math
 import argparse
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageOps
 
 def halftone_rotate(
     input_path: str,
@@ -51,7 +51,21 @@ def halftone_rotate(
     else:
         orig = orig_full
 
-    gray = orig.convert("L")
+    gray_base = orig.convert("L")
+
+    # 3b) Ajusta imagem conforme o fundo de destino:
+    #     - fundo claro => inverte como no fluxo do Photoshop para camisetas brancas
+    #     - fundo escuro => mantém as cores originais
+    if background == "claro":
+        inverted_rgb = ImageOps.invert(orig.convert("RGB"))
+        r, g, b = inverted_rgb.split()
+        color_img = Image.merge("RGBA", (r, g, b, orig.split()[-1]))
+        def intensity(ix, iy):
+            return 1.0 - (gray_base.getpixel((ix, iy)) / 255.0)
+    else:
+        color_img = orig
+        def intensity(ix, iy):
+            return gray_base.getpixel((ix, iy)) / 255.0
 
     # 4) Gera nome de saída
     if not output_path:
@@ -65,7 +79,7 @@ def halftone_rotate(
     # 6) Pré-calcula trigonometria e parâmetros
     theta = math.radians(angle)
     cos_t, sin_t = math.cos(theta), math.sin(theta)
-    half = block_size/2
+    max_radius = max(1.0, float(block_size))
     diag = math.hypot(w,h)
     start, end = -diag/2, diag/2
 
@@ -73,12 +87,8 @@ def halftone_rotate(
     fill_alpha = max(1, min(255, int(255/layers)))
 
     # 8) Define função de cálculo de raio e cor (incluindo alpha)
-    if background=='escuro':
-        def compute(bright, px_color):
-            return (half*bright, (255,255,255,fill_alpha))
-    else:
-        def compute(bright, px_color):
-            return (half*(1-bright), (px_color[0],px_color[1],px_color[2],fill_alpha))
+    def compute(bright, px_color):
+        return (max_radius*bright, (px_color[0], px_color[1], px_color[2], fill_alpha))
 
     # 9) Varre a grade inclinada e desenha no base_layer
     u = start
@@ -89,8 +99,8 @@ def halftone_rotate(
             y = u*sin_t + v*cos_t + h/2
             if 0<=x<w and 0<=y<h:
                 ix,iy = int(x),int(y)
-                bright = gray.getpixel((ix,iy))/255.0
-                px_color = orig.getpixel((ix,iy))
+                bright = intensity(ix, iy)
+                px_color = color_img.getpixel((ix,iy))
                 if px_color[3]!=0:
                     r, fill = compute(bright, px_color)
                     if r>=0.5:
@@ -111,7 +121,7 @@ def halftone_rotate(
 
     # 11) Salva sempre um PNG transparente
     intensified.save(output_path, format="PNG", dpi=(dpi,dpi))
-    print(f"[✔] Halftone salvo em: {output_path}")
+    print(f"[OK] Halftone salvo em: {output_path}")
     return output_path
 
 def parse_args():
@@ -120,8 +130,8 @@ def parse_args():
     )
     p.add_argument("input", help="Imagem de entrada (JPG, PNG etc.)")
     p.add_argument("-o","--output", help="PNG de saída (opcional)")
-    p.add_argument("-b","--block-size", type=int, default=10,
-                   help="Tamanho do bloco/ponto da grade (padrão:10)")
+    p.add_argument("-b","--block-size", type=int, default=35,
+                   help="Tamanho do bloco/ponto da grade (padrão:35)")
     p.add_argument("--angle", type=float, default=45.0,
                    help="Ângulo da grade em graus (padrão:45)")
     p.add_argument("--shape", choices=["circle","square","diamond"],

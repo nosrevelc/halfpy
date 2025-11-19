@@ -64,11 +64,11 @@ O `process.py` virou o canivete suíço do projeto. Execute `py process.py --hel
 
 | Parâmetro                | Valor padrão | Quando usar                                                                                                       |
 |-------------------------|--------------|-------------------------------------------------------------------------------------------------------------------|
-| `-b / --block-size`     | `10`         | Frequência da retícula: números menores → pontos mais densos; maiores → pontos espaçados.                         |
+| `-b / --block-size`     | `10`         | Raio máximo (em pixels) de cada ponto, equivalente ao “Max Radius” do Photoshop. Valores maiores geram círculos mais largos.                         |
 | `--angle`               | `45`         | Define a rotação da grade em graus.                                                                               |
 | `--shape`               | `circle`     | Formato do ponto (`circle`, `square`, `diamond`).                                                                 |
 | `--dpi`                 | `300`        | DPI gravado no PNG final.                                                                                         |
-| `--background`          | `claro`      | `claro` preserva as cores originais (ideal para base clara). `escuro` gera dots brancos para contraste em fundo escuro. |
+| `--background`          | `claro`      | `claro` inverte automaticamente antes do halftone (como no Photoshop) para uso em fundos claros. `escuro` mantém as cores originais para aplicação sobre bases escuras. |
 | `--layers`              | `3`          | Número de camadas semitransparentes empilhadas para reforçar o contraste.                                         |
 | `-o / --output`         | automático   | Caminho opcional para o PNG final.                                                                                |
 
