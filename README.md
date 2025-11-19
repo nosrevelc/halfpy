@@ -96,22 +96,4 @@ Para ver as opções exatas de qualquer script Python, use:
 ```powershell
 py script_name.py --help
 ```
-
-## Observações sobre o repositório no GitHub
-- Configurei o repositório em `https://github.com/nosrevelc/halfpy` e enviei os arquivos locais.
-- Alguns arquivos grandes já foram incluídos no histórico antes de rastrear com LFS. Se quiser, é possível reescrever o histórico para migrar esses blobs para LFS (ex.: `git lfs migrate import --include="*.pb,*.zip,*.psd"`) — isso é destrutivo e requer coordenação com colaboradores.
-
-## Boas práticas
-- Não comite diretórios de ambiente virtual (`venv/` ou `.venv/`).
-- Mantenha modelos grandes no LFS ou disponibilize por download separado.
-- Adicione `requirements.txt` atualizado ao repo para reproduzibilidade.
-
-## Contato / próximos passos
-Se quiser, eu posso:
-- A) Reescrever o histórico e migrar arquivos grandes para Git LFS (precisa aprovação).
-- B) Remover `venv` do índice e commitar a limpeza.
-- C) Ajudar a documentar mais comandos e exemplos específicos (ex.: parâmetros avançados do `half.py`).
-
----
-Arquivo criado automaticamente por suporte — edite conforme necessário.
-# halfpy
+```
